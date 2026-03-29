@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Duck Physics Shooter</title>
+<style>
+  body { margin:0; background:#0b0f1a; overflow:hidden; color:white; font-family:Arial }
+  canvas { display:block }
+  #questionBox {
+    position:absolute;
+    bottom:10px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#111;
+    padding:10px;
+    border-radius:10px;
+    width:90%;
+  }
+  button { margin:5px; padding:8px }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="questionBox" style="display:none">
+  <div id="question"></div>
+  <div id="answers"></div>
+</div>
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function resize(){ canvas.width=innerWidth; canvas.height=innerHeight }
+resize(); window.addEventListener("resize",resize);
+
+let bullets=[],ducks=[];
+let hp=5;
+let questions=[
+  {q:"Công thức động năng?",a:["1/2mv^2","mv^2","mgh"],correct:0}
+];
+
+function spawnDuck(){
+  let fromLeft=Math.random()>0.5;
+  ducks.push({
+    x: fromLeft?-40:canvas.width+40,
+    y: Math.random()*canvas.height*0.6,
+    speed: fromLeft?3:-3,
+    r:20,
+    state:"flying" // flying, hit, attack
+  });
+}
+
+function shoot(){
+  bullets.push({x:canvas.width/2,y:canvas.height-60,dy:-8,state:"flying",target:null});
+}
+
+canvas.addEventListener("touchstart",shoot);
+
+function askQuestion(duck, bullet){
+  const q=questions[Math.floor(Math.random()*questions.length)];
+  const box=document.getElementById("questionBox");
+  box.style.display="block";
+  document.getElementById("question").innerText=q.q;
+
+  const ansDiv=document.getElementById("answers");
+  ansDiv.innerHTML="";
+
+  q.a.forEach((ans,i)=>{
+    const btn=document.createElement("button");
+    btn.innerText=ans;
+    btn.onclick=()=>{
+      if(i===q.correct){
+        bullet.state="stick"; // dính vào vịt
+        bullet.target=duck;
+        duck.state="hit";
+      } else {
+        bullet.state="miss"; // hụt → rơi xuống
+        duck.state="attack";
+        hp--;
+      }
+      box.style.display="none";
+    }
+    ansDiv.appendChild(btn);
+  });
+}
+
+function update(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // bullets
+  bullets.forEach((b,i)=>{
+    if(b.state==="flying"){
+      b.y+=b.dy;
+    } else if(b.state==="miss"){
+      b.y+=5; // rơi xuống
+    } else if(b.state==="stick" && b.target){
+      b.x=b.target.x;
+      b.y=b.target.y;
+    }
+
+    ctx.fillStyle="red";
+    ctx.fillRect(b.x,b.y,5,10);
+
+    if(b.y<0||b.y>canvas.height) bullets.splice(i,1);
+  });
+
+  // ducks
+  ducks.forEach((d,i)=>{
+    if(d.state==="flying"){
+      d.x+=d.speed;
+    }
+    if(d.state==="attack"){
+      d.y+=5; // lao xuống
+    }
+
+    ctx.fillStyle=d.state==="hit"?"gray":"yellow";
+    ctx.beginPath();
+    ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+    ctx.fill();
+
+    // collision
+    bullets.forEach((b)=>{
+      if(b.state!=="flying") return;
+      let dx=b.x-d.x,dy=b.y-d.y;
+      if(Math.sqrt(dx*dx+dy*dy)<d.r){
+        b.state="idle";
+        askQuestion(d,b);
+      }
+    });
+
+    if(d.y>canvas.height||d.x<-50||d.x>canvas.width+50){
+      ducks.splice(i,1);
+    }
+  });
+
+  // gun
+  ctx.fillStyle="white";
+  ctx.fillRect(canvas.width/2-15,canvas.height-40,30,20);
+
+  // HP display
+  ctx.fillStyle="white";
+  ctx.fillText("HP: "+hp,10,20);
+
+  requestAnimationFrame(update);
+}
+
+setInterval(spawnDuck,1200);
+update();
+</script>
+</body>
+</html>
