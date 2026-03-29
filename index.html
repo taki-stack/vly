@@ -80,17 +80,21 @@ resize(); window.addEventListener("resize",resize);
 
 let bullets=[],ducks=[];
 let hp=10, maxHp=10, score=0;
-let touch={x:canvas.width/2,y:canvas.height/2};
+let lastShot=0;
+const reloadTime = 1500; // 1.5s
 
 let questions=[
   {q:"Công thức động năng?",a:["1/2mv^2","mv^2","mgh"],correct:0}
 ];
 
-canvas.addEventListener("touchmove",e=>{
+canvas.addEventListener("touchstart",e=>{
+  let now = Date.now();
+  if(now - lastShot < reloadTime) return; // reload delay
+
   let t=e.touches[0];
-  touch.x=t.clientX; touch.y=t.clientY;
+  shoot(t.clientX, t.clientY);
+  lastShot = now;
 });
-canvas.addEventListener("touchstart",shoot);
 
 function spawnDuck(){
   let fromLeft=Math.random()>0.5;
@@ -103,8 +107,8 @@ function spawnDuck(){
   });
 }
 
-function shoot(){
-  let angle=Math.atan2(touch.y-(canvas.height-60),touch.x-(canvas.width/2));
+function shoot(targetX, targetY){
+  let angle=Math.atan2(targetY-(canvas.height-60),targetX-(canvas.width/2));
   bullets.push({
     x:canvas.width/2,
     y:canvas.height-60,
@@ -126,13 +130,6 @@ function drawGun(){
   let x=canvas.width/2, y=canvas.height-60;
   ctx.fillStyle="#222";
   ctx.fillRect(x-12,y,24,25);
-
-  ctx.beginPath();
-  ctx.moveTo(x,y);
-  ctx.lineTo(touch.x,touch.y);
-  ctx.strokeStyle="white";
-  ctx.lineWidth=3;
-  ctx.stroke();
 }
 
 function askQuestion(duck, bullet){
@@ -189,7 +186,7 @@ function update(){
     if(b.x<0||b.x>canvas.width||b.y<0||b.y>canvas.height){ bullets.splice(i,1); }
   });
 
-  // ducks (HORIZONTAL ONLY)
+  // ducks
   ducks.forEach((d,i)=>{
     if(d.state==="flying") d.x+=d.speed;
     if(d.state==="attack") d.y+=6;
