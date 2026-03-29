@@ -3,29 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Duck Physics Shooter</title>
+<title>Duck Shooter UI Upgrade</title>
 <style>
-  body { margin:0; background:#0b0f1a; overflow:hidden; color:white; font-family:Arial }
+  body { margin:0; background:linear-gradient(#5ec0ff,#bde0fe); overflow:hidden; font-family:Arial }
   canvas { display:block }
+
+  #topUI {
+    position:absolute;
+    top:10px;
+    left:10px;
+    right:10px;
+    display:flex;
+    justify-content:space-between;
+    color:white;
+    font-size:18px;
+    text-shadow:1px 1px 2px black;
+  }
+
+  #hpBar {
+    width:120px;
+    height:15px;
+    background:#333;
+    border-radius:10px;
+    overflow:hidden;
+  }
+
+  #hpFill {
+    height:100%;
+    background:red;
+    width:100%;
+  }
+
   #questionBox {
     position:absolute;
     bottom:10px;
     left:50%;
     transform:translateX(-50%);
-    background:#111;
-    padding:10px;
-    border-radius:10px;
+    background:rgba(0,0,0,0.8);
+    padding:12px;
+    border-radius:12px;
     width:90%;
+    color:white;
   }
-  button { margin:5px; padding:8px }
+
+  button {
+    margin:5px;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#4cc9f0;
+    color:white;
+    font-weight:bold;
+  }
 </style>
 </head>
 <body>
+
 <canvas id="game"></canvas>
+
+<div id="topUI">
+  <div>Score: <span id="score">0</span></div>
+  <div id="hpBar"><div id="hpFill"></div></div>
+</div>
+
 <div id="questionBox" style="display:none">
   <div id="question"></div>
   <div id="answers"></div>
 </div>
+
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -34,7 +79,7 @@ function resize(){ canvas.width=innerWidth; canvas.height=innerHeight }
 resize(); window.addEventListener("resize",resize);
 
 let bullets=[],ducks=[];
-let hp=10, score=0;
+let hp=10, maxHp=10, score=0;
 let touch={x:canvas.width/2,y:canvas.height/2};
 
 let questions=[
@@ -51,20 +96,20 @@ function spawnDuck(){
   let fromLeft=Math.random()>0.5;
   ducks.push({
     x: fromLeft?-40:canvas.width+40,
-    y: Math.random()*canvas.height*0.6,
-    speed: fromLeft?3:-3,
+    y: Math.random()*canvas.height*0.5,
+    speed: fromLeft?4:-4,
     r:20,
     state:"flying"
   });
 }
 
 function shoot(){
-  let angle=Math.atan2(touch.y-(canvas.height-50),touch.x-(canvas.width/2));
+  let angle=Math.atan2(touch.y-(canvas.height-60),touch.x-(canvas.width/2));
   bullets.push({
     x:canvas.width/2,
-    y:canvas.height-50,
-    dx:Math.cos(angle)*8,
-    dy:Math.sin(angle)*8,
+    y:canvas.height-60,
+    dx:Math.cos(angle)*10,
+    dy:Math.sin(angle)*10,
     state:"flying",
     target:null
   });
@@ -74,17 +119,19 @@ function drawDuck(d){
   ctx.fillStyle="yellow";
   ctx.beginPath(); ctx.arc(d.x,d.y,15,0,Math.PI*2); ctx.fill();
   ctx.fillStyle="orange";
-  ctx.fillRect(d.x+10,d.y-3,8,6); // mỏ
+  ctx.fillRect(d.x+10,d.y-3,8,6);
 }
 
 function drawGun(){
-  let x=canvas.width/2, y=canvas.height-50;
-  ctx.fillStyle="white";
-  ctx.fillRect(x-10,y,20,20);
+  let x=canvas.width/2, y=canvas.height-60;
+  ctx.fillStyle="#222";
+  ctx.fillRect(x-12,y,24,25);
+
   ctx.beginPath();
   ctx.moveTo(x,y);
   ctx.lineTo(touch.x,touch.y);
   ctx.strokeStyle="white";
+  ctx.lineWidth=3;
   ctx.stroke();
 }
 
@@ -111,10 +158,16 @@ function askQuestion(duck, bullet){
         duck.state="attack";
         hp--;
       }
+      updateUI();
       box.style.display="none";
     }
     ansDiv.appendChild(btn);
   });
+}
+
+function updateUI(){
+  document.getElementById("score").innerText=score;
+  document.getElementById("hpFill").style.width = (hp/maxHp*100)+"%";
 }
 
 function update(){
@@ -125,7 +178,7 @@ function update(){
     if(b.state==="flying"){
       b.x+=b.dx; b.y+=b.dy;
     } else if(b.state==="miss"){
-      b.y+=5;
+      b.y+=6;
     } else if(b.state==="stick" && b.target){
       b.x=b.target.x; b.y=b.target.y;
     }
@@ -133,15 +186,13 @@ function update(){
     ctx.fillStyle="red";
     ctx.fillRect(b.x,b.y,4,8);
 
-    if(b.x<0||b.x>canvas.width||b.y<0||b.y>canvas.height){
-      bullets.splice(i,1);
-    }
+    if(b.x<0||b.x>canvas.width||b.y<0||b.y>canvas.height){ bullets.splice(i,1); }
   });
 
-  // ducks
+  // ducks (HORIZONTAL ONLY)
   ducks.forEach((d,i)=>{
     if(d.state==="flying") d.x+=d.speed;
-    if(d.state==="attack") d.y+=5;
+    if(d.state==="attack") d.y+=6;
 
     drawDuck(d);
 
@@ -154,32 +205,29 @@ function update(){
       }
     });
 
-    if(d.y>canvas.height||d.x<-50||d.x>canvas.width+50){
-      ducks.splice(i,1);
-    }
+    if(d.x<-60||d.x>canvas.width+60||d.y>canvas.height){ ducks.splice(i,1); }
   });
 
   drawGun();
 
-  // UI
-  ctx.fillStyle="white";
-  ctx.fillText("HP: "+hp,10,20);
-  ctx.fillText("Score: "+score,10,40);
-
-  // win/lose
   if(hp<=0){
-    ctx.fillText("GAME OVER",canvas.width/2-40,canvas.height/2);
+    ctx.fillStyle="white";
+    ctx.font="30px Arial";
+    ctx.fillText("GAME OVER",canvas.width/2-90,canvas.height/2);
     return;
   }
+
   if(score>=15){
-    ctx.fillText("YOU WIN",canvas.width/2-40,canvas.height/2);
+    ctx.fillStyle="white";
+    ctx.font="30px Arial";
+    ctx.fillText("YOU WIN",canvas.width/2-70,canvas.height/2);
     return;
   }
 
   requestAnimationFrame(update);
 }
 
-setInterval(spawnDuck,1000);
+setInterval(spawnDuck,900);
 update();
 </script>
 </body>
