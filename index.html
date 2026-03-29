@@ -34,10 +34,18 @@ function resize(){ canvas.width=innerWidth; canvas.height=innerHeight }
 resize(); window.addEventListener("resize",resize);
 
 let bullets=[],ducks=[];
-let hp=5;
+let hp=10, score=0;
+let touch={x:canvas.width/2,y:canvas.height/2};
+
 let questions=[
   {q:"Công thức động năng?",a:["1/2mv^2","mv^2","mgh"],correct:0}
 ];
+
+canvas.addEventListener("touchmove",e=>{
+  let t=e.touches[0];
+  touch.x=t.clientX; touch.y=t.clientY;
+});
+canvas.addEventListener("touchstart",shoot);
 
 function spawnDuck(){
   let fromLeft=Math.random()>0.5;
@@ -46,15 +54,39 @@ function spawnDuck(){
     y: Math.random()*canvas.height*0.6,
     speed: fromLeft?3:-3,
     r:20,
-    state:"flying" // flying, hit, attack
+    state:"flying"
   });
 }
 
 function shoot(){
-  bullets.push({x:canvas.width/2,y:canvas.height-60,dy:-8,state:"flying",target:null});
+  let angle=Math.atan2(touch.y-(canvas.height-50),touch.x-(canvas.width/2));
+  bullets.push({
+    x:canvas.width/2,
+    y:canvas.height-50,
+    dx:Math.cos(angle)*8,
+    dy:Math.sin(angle)*8,
+    state:"flying",
+    target:null
+  });
 }
 
-canvas.addEventListener("touchstart",shoot);
+function drawDuck(d){
+  ctx.fillStyle="yellow";
+  ctx.beginPath(); ctx.arc(d.x,d.y,15,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="orange";
+  ctx.fillRect(d.x+10,d.y-3,8,6); // mỏ
+}
+
+function drawGun(){
+  let x=canvas.width/2, y=canvas.height-50;
+  ctx.fillStyle="white";
+  ctx.fillRect(x-10,y,20,20);
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+  ctx.lineTo(touch.x,touch.y);
+  ctx.strokeStyle="white";
+  ctx.stroke();
+}
 
 function askQuestion(duck, bullet){
   const q=questions[Math.floor(Math.random()*questions.length)];
@@ -70,11 +102,12 @@ function askQuestion(duck, bullet){
     btn.innerText=ans;
     btn.onclick=()=>{
       if(i===q.correct){
-        bullet.state="stick"; // dính vào vịt
+        bullet.state="stick";
         bullet.target=duck;
         duck.state="hit";
+        score++;
       } else {
-        bullet.state="miss"; // hụt → rơi xuống
+        bullet.state="miss";
         duck.state="attack";
         hp--;
       }
@@ -90,35 +123,28 @@ function update(){
   // bullets
   bullets.forEach((b,i)=>{
     if(b.state==="flying"){
-      b.y+=b.dy;
+      b.x+=b.dx; b.y+=b.dy;
     } else if(b.state==="miss"){
-      b.y+=5; // rơi xuống
+      b.y+=5;
     } else if(b.state==="stick" && b.target){
-      b.x=b.target.x;
-      b.y=b.target.y;
+      b.x=b.target.x; b.y=b.target.y;
     }
 
     ctx.fillStyle="red";
-    ctx.fillRect(b.x,b.y,5,10);
+    ctx.fillRect(b.x,b.y,4,8);
 
-    if(b.y<0||b.y>canvas.height) bullets.splice(i,1);
+    if(b.x<0||b.x>canvas.width||b.y<0||b.y>canvas.height){
+      bullets.splice(i,1);
+    }
   });
 
   // ducks
   ducks.forEach((d,i)=>{
-    if(d.state==="flying"){
-      d.x+=d.speed;
-    }
-    if(d.state==="attack"){
-      d.y+=5; // lao xuống
-    }
+    if(d.state==="flying") d.x+=d.speed;
+    if(d.state==="attack") d.y+=5;
 
-    ctx.fillStyle=d.state==="hit"?"gray":"yellow";
-    ctx.beginPath();
-    ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-    ctx.fill();
+    drawDuck(d);
 
-    // collision
     bullets.forEach((b)=>{
       if(b.state!=="flying") return;
       let dx=b.x-d.x,dy=b.y-d.y;
@@ -133,18 +159,27 @@ function update(){
     }
   });
 
-  // gun
-  ctx.fillStyle="white";
-  ctx.fillRect(canvas.width/2-15,canvas.height-40,30,20);
+  drawGun();
 
-  // HP display
+  // UI
   ctx.fillStyle="white";
   ctx.fillText("HP: "+hp,10,20);
+  ctx.fillText("Score: "+score,10,40);
+
+  // win/lose
+  if(hp<=0){
+    ctx.fillText("GAME OVER",canvas.width/2-40,canvas.height/2);
+    return;
+  }
+  if(score>=15){
+    ctx.fillText("YOU WIN",canvas.width/2-40,canvas.height/2);
+    return;
+  }
 
   requestAnimationFrame(update);
 }
 
-setInterval(spawnDuck,1200);
+setInterval(spawnDuck,1000);
 update();
 </script>
 </body>
