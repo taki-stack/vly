@@ -1,0 +1,12 @@
+[
+  {
+    "q": "Công thức động năng?",
+    "a": ["1/2mv^2", "mv^2", "mgh"],
+    "correct": 0
+  },
+  {
+    "q": "Đơn vị của công?",
+    "a": ["J", "W", "N"],
+    "correct": 0
+  }
+]
