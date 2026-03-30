@@ -6,44 +6,13 @@
 <title>Duck Hunt Physics</title>
 
 <style>
-body {
-  margin: 0;
-  overflow: hidden;
-  font-family: Arial;
-}
-canvas {
-  display: block;
-}
-
-#questionBox {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.8);
-  color: white;
-  padding: 12px;
-  border-radius: 10px;
-  width: 90%;
-}
-
-button {
-  margin: 5px;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-}
+body { margin:0; overflow:hidden; }
+canvas { display:block; }
 </style>
 </head>
 
 <body>
-
 <canvas id="game"></canvas>
-
-<div id="questionBox" style="display:none">
-  <div id="question"></div>
-  <div id="answers"></div>
-</div>
 
 <script>
 const canvas = document.getElementById("game");
@@ -56,20 +25,35 @@ function resize(){
 resize();
 window.addEventListener("resize", resize);
 
-// ⚠️ giữ pixel style
+// ⚠️ giữ pixel
 ctx.imageSmoothingEnabled = false;
 
-// ===== LOAD IMAGES =====
+// ===== LOAD IMAGE =====
 const duckImg = new Image();
-duckImg.src = "duck.png";
+duckImg.src = "./duck.png";
 
 const bgImg = new Image();
-bgImg.src = "bg.png";
+bgImg.src = "./bg.png";
 
 const gunImg = new Image();
-gunImg.src = "gun.png";
+gunImg.src = "./gun.png";
 
-// ===== GAME STATE =====
+// ===== WAIT LOAD =====
+let loaded = 0;
+function checkLoad(){
+  loaded++;
+  if(loaded === 3){
+    startGame();
+  }
+}
+
+duckImg.onload = checkLoad;
+bgImg.onload = checkLoad;
+gunImg.onload = checkLoad;
+
+// ===== GAME =====
+function startGame(){
+
 let bullets = [];
 let ducks = [];
 
@@ -79,28 +63,19 @@ let score = 0;
 let lastShot = 0;
 const reloadTime = 1500;
 
-// ===== QUESTIONS =====
-let questions = [
-  {
-    q: "Công thức động năng?",
-    a: ["1/2mv^2", "mv^2", "mgh"],
-    correct: 0
-  }
-];
-
-// ===== SPAWN DUCK =====
+// spawn duck
 function spawnDuck(){
   let fromLeft = Math.random() > 0.5;
   ducks.push({
-    x: fromLeft ? -50 : canvas.width + 50,
+    x: fromLeft ? -60 : canvas.width + 60,
     y: Math.random() * canvas.height * 0.5,
-    speed: fromLeft ? 3 : -3,
+    speed: fromLeft ? 4 : -4,
     state: "flying"
   });
 }
 
-// ===== SHOOT =====
-canvas.addEventListener("touchstart", e => {
+// shoot
+canvas.addEventListener("touchstart", e=>{
   let now = Date.now();
   if(now - lastShot < reloadTime) return;
 
@@ -112,21 +87,21 @@ canvas.addEventListener("touchstart", e => {
 
 function shoot(tx, ty){
   let angle = Math.atan2(
-    ty - (canvas.height - 60),
+    ty - (canvas.height - 80),
     tx - (canvas.width/2)
   );
 
   bullets.push({
     x: canvas.width/2,
-    y: canvas.height - 60,
-    dx: Math.cos(angle) * 10,
-    dy: Math.sin(angle) * 10,
+    y: canvas.height - 80,
+    dx: Math.cos(angle) * 12,
+    dy: Math.sin(angle) * 12,
     state: "flying",
     target: null
   });
 }
 
-// ===== DRAW =====
+// draw
 function drawDuck(d){
   ctx.drawImage(duckImg, d.x-25, d.y-25, 50, 50);
 }
@@ -135,49 +110,15 @@ function drawGun(){
   ctx.drawImage(
     gunImg,
     canvas.width/2 - 30,
-    canvas.height - 80,
+    canvas.height - 100,
     60,
     60
   );
 }
 
-// ===== QUESTION =====
-function askQuestion(duck, bullet){
-  let q = questions[Math.floor(Math.random()*questions.length)];
-
-  let box = document.getElementById("questionBox");
-  box.style.display = "block";
-
-  document.getElementById("question").innerText = q.q;
-
-  let ansDiv = document.getElementById("answers");
-  ansDiv.innerHTML = "";
-
-  q.a.forEach((ans, i) => {
-    let btn = document.createElement("button");
-    btn.innerText = ans;
-
-    btn.onclick = () => {
-      if(i === q.correct){
-        bullet.state = "stick";
-        bullet.target = duck;
-        duck.state = "hit";
-        score++;
-      } else {
-        bullet.state = "miss";
-        duck.state = "attack";
-        hp--;
-      }
-
-      box.style.display = "none";
-    };
-
-    ansDiv.appendChild(btn);
-  });
-}
-
-// ===== UPDATE =====
+// update
 function update(){
+
   // background
   ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
@@ -186,13 +127,6 @@ function update(){
     if(b.state==="flying"){
       b.x+=b.dx;
       b.y+=b.dy;
-    }
-    else if(b.state==="miss"){
-      b.y+=6;
-    }
-    else if(b.state==="stick" && b.target){
-      b.x=b.target.x;
-      b.y=b.target.y;
     }
 
     ctx.fillStyle="red";
@@ -205,37 +139,33 @@ function update(){
 
   // ducks
   ducks.forEach((d,i)=>{
-    if(d.state==="flying") d.x+=d.speed;
-    if(d.state==="attack") d.y+=6;
-
+    d.x += d.speed;
     drawDuck(d);
 
     bullets.forEach((b)=>{
-      if(b.state!=="flying") return;
-
       let dx=b.x-d.x;
       let dy=b.y-d.y;
 
       if(Math.sqrt(dx*dx+dy*dy)<25){
-        b.state="idle";
-        askQuestion(d,b);
+        ducks.splice(i,1);
+        score++;
       }
     });
 
-    if(d.x<-60||d.x>canvas.width+60||d.y>canvas.height){
+    if(d.x<-80||d.x>canvas.width+80){
       ducks.splice(i,1);
     }
   });
 
   drawGun();
 
-  // UI text
+  // UI
   ctx.fillStyle="white";
   ctx.font="20px Arial";
   ctx.fillText("HP: "+hp, 10, 30);
   ctx.fillText("Score: "+score, 10, 60);
 
-  // win / lose
+  // win lose
   if(hp<=0){
     ctx.font="40px Arial";
     ctx.fillText("GAME OVER", canvas.width/2-120, canvas.height/2);
@@ -251,10 +181,10 @@ function update(){
   requestAnimationFrame(update);
 }
 
-// ===== START =====
 setInterval(spawnDuck, 1000);
 update();
 
+}
 </script>
 </body>
 </html>
