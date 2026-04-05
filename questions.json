@@ -1,0 +1,34 @@
+[
+  {
+    "question": "Tính cường độ dòng điện khi q = 1C, t = 4×10^-4 s (A)",
+    "answer": "2500"
+  },
+  {
+    "question": "Một tụ điện 20pF tích điện ở 200V. Năng lượng điện trường (J)?",
+    "answer": "4e-7"
+  },
+  {
+    "question": "Một tụ điện C = 0.2F, U = 9V, phóng điện trong 0.001s. Công suất (W)?",
+    "answer": "8100"
+  },
+  {
+    "question": "Hai điện trở RA = 2RB, cùng hiệu điện thế. Tỉ số công suất PA/PB?",
+    "answer": "0.5"
+  },
+  {
+    "question": "Hiệu suất nguồn điện = 85%. Nhận xét về điện trở trong r so với R?",
+    "answer": "r<R"
+  },
+  {
+    "question": "3 pin 1.5V nối tiếp, R = 15Ω, I = 0.27A. Tính điện trở trong mỗi pin (Ω)",
+    "answer": "0.56"
+  },
+  {
+    "question": "20 phòng, mỗi phòng 500W, dùng 10h/ngày trong 30 ngày. Giá 2500đ/kWh. Tiền điện (đ)?",
+    "answer": "7500000"
+  },
+  {
+    "question": "Một tụ điện có C = 2μF, U = 12V. Tính năng lượng tích trữ (J)",
+    "answer": "1.44e-4"
+  }
+]
