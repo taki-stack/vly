@@ -1,34 +1,34 @@
 [
   {
     "question": "Tính cường độ dòng điện khi q = 1C, t = 4×10^-4 s (A)",
-    "answer": "2500"
+    "answers": ["2500", "2.5e3", "2.5*10^3"]
   },
   {
-    "question": "Một tụ điện 20pF tích điện ở 200V. Năng lượng điện trường (J)?",
-    "answer": "4e-7"
+    "question": "Tụ điện 20pF, U=200V. Năng lượng điện trường (J)?",
+    "answers": ["4e-7", "0.0000004", "4*10^-7"]
   },
   {
-    "question": "Một tụ điện C = 0.2F, U = 9V, phóng điện trong 0.001s. Công suất (W)?",
-    "answer": "8100"
+    "question": "C=0.2F, U=9V, phóng điện trong 0.001s. Công suất (W)?",
+    "answers": ["8100", "8.1e3"]
   },
   {
-    "question": "Hai điện trở RA = 2RB, cùng hiệu điện thế. Tỉ số công suất PA/PB?",
-    "answer": "0.5"
+    "question": "Hai điện trở RA = 2RB, cùng hiệu điện thế. Tỉ số PA/PB?",
+    "answers": ["0.5", "1/2"]
   },
   {
-    "question": "Hiệu suất nguồn điện = 85%. Nhận xét về điện trở trong r so với R?",
-    "answer": "r<R"
+    "question": "Hiệu suất nguồn điện = 85%. So sánh r với R?",
+    "answers": ["r<R", "r<R ", "r < R"]
   },
   {
-    "question": "3 pin 1.5V nối tiếp, R = 15Ω, I = 0.27A. Tính điện trở trong mỗi pin (Ω)",
-    "answer": "0.56"
+    "question": "3 pin 1.5V nối tiếp, R=15Ω, I=0.27A. r mỗi pin (Ω)?",
+    "answers": ["0.56", "0.6", "0.55"]
   },
   {
-    "question": "20 phòng, mỗi phòng 500W, dùng 10h/ngày trong 30 ngày. Giá 2500đ/kWh. Tiền điện (đ)?",
-    "answer": "7500000"
+    "question": "20 phòng, mỗi phòng 500W, 10h/ngày, 30 ngày. Giá 2500đ/kWh. Tiền điện (đ)?",
+    "answers": ["7500000", "7.5e6"]
   },
   {
-    "question": "Một tụ điện có C = 2μF, U = 12V. Tính năng lượng tích trữ (J)",
-    "answer": "1.44e-4"
+    "question": "Tụ điện C=2μF, U=12V. Năng lượng (J)?",
+    "answers": ["1.44e-4", "0.000144"]
   }
 ]
