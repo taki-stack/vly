@@ -9,7 +9,7 @@
 body { margin:0; overflow:hidden; font-family: Arial; }
 canvas { display:block; }
 
-/* UI overlay */
+/* UI */
 #ui {
   position: absolute;
   top:0; left:0;
@@ -36,7 +36,7 @@ canvas { display:block; }
 
 #answer {
   width:100%;
-  padding:10px;
+  padding:12px;
   font-size:18px;
   border:none;
   border-radius:10px;
@@ -44,7 +44,7 @@ canvas { display:block; }
 
 #submit {
   margin-top:10px;
-  padding:10px;
+  padding:12px;
   width:100%;
   font-size:18px;
   background:#00c853;
@@ -188,12 +188,11 @@ function reloadAmmo(){
   },1500);
 }
 
-// ===== HIT → QUESTION =====
+// ===== HIT =====
 function hitDuck(index){
   ducks.splice(index,1);
 
   currentQuestion = questions[Math.floor(Math.random()*questions.length)];
-
   showQuestion();
 }
 
@@ -225,10 +224,12 @@ submitBtn.onclick = checkAnswer;
 function checkAnswer(){
   clearInterval(timerInterval);
 
-  let user = answerInput.value.trim();
-  let correct = currentQuestion.answer;
+  let user = normalize(answerInput.value);
+  let correctList = currentQuestion.answers;
 
-  if(user == correct){
+  let isCorrect = correctList.some(ans => normalize(ans) === user);
+
+  if(isCorrect){
     score++;
   } else {
     hp--;
@@ -247,6 +248,15 @@ function hideUI(){
   ui.style.display = "none";
 }
 
+// ===== NORMALIZE =====
+function normalize(str){
+  return str
+    .toLowerCase()
+    .replace(/\s/g,"")
+    .replace("*10^","e")
+    .replace("×10^","e");
+}
+
 // ===== DRAW =====
 function drawDuck(d){
   ctx.drawImage(duckImg, d.x-25, d.y-25, 50, 50);
@@ -261,7 +271,6 @@ function update(){
 
   ctx.drawImage(bgImg,0,0,canvas.width,canvas.height);
 
-  // bullets
   bullets.forEach((b,i)=>{
     b.x+=b.dx;
     b.y+=b.dy;
@@ -274,7 +283,6 @@ function update(){
     }
   });
 
-  // ducks
   ducks.forEach((d,i)=>{
     d.x+=d.speed;
     drawDuck(d);
@@ -295,13 +303,11 @@ function update(){
 
   drawGun();
 
-  // UI
   ctx.fillStyle="white";
   ctx.font="18px Arial";
   ctx.fillText("HP: "+hp,10,30);
   ctx.fillText("Score: "+score,10,55);
 
-  // ammo
   ctx.fillText("Ammo:",10,80);
   for(let i=0;i<maxAmmo;i++){
     ctx.fillStyle = i<ammo ? "yellow":"gray";
@@ -313,7 +319,6 @@ function update(){
     ctx.fillText("RELOADING...",10,100);
   }
 
-  // end
   if(hp<=0){
     ctx.font="40px Arial";
     ctx.fillText("GAME OVER",canvas.width/2-120,canvas.height/2);
